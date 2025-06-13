@@ -36,7 +36,8 @@ def generate_labels(data_path, output_path):
     with open(output_path, mode="w", newline="") as file:
         writer = csv.writer(file)
         # Use underscore in front of class, because class is a keyword in python and this caused problems
-        writer.writerow(["split", "category", "filename", "source"])
+        writer.writerow(
+            ["split", "category", "filename", "source", "full_path"])
 
         for split in splits:
             for cls in classes:
@@ -46,7 +47,8 @@ def generate_labels(data_path, output_path):
                 for fname in sorted(os.listdir(class_dir)):
                     source = "CIFAR-10" if fname.startswith(
                         "cifar10") else "ImageNet"
-                    writer.writerow([split, cls, fname, source])
+                    full_path = split + "/" + cls + "/" + fname
+                    writer.writerow([split, cls, fname, source, full_path])
 
     print(f"Domain labels written to: {output_path}")
 
