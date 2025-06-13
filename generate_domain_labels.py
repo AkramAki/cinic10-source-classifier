@@ -5,7 +5,7 @@ import argparse
 
 # Use this file by running      "python generate_domain_labels.py --data path/to/CINIC-10 --out path/to/output.csv"     in the command line
 # Change "path/to/CINIC-10" and "path/to/output.csv" to the correct paths.
-# Running the python file from the repos root directory use "python generate_domain_labels.py --data data/CINIC-10 --out data/labels.csv"
+# Running the python file from the repos root directory use "python generate_domain_labels.py --data data/CINIC-10 --out data/cinic10_domain_labels.csv"
 
 # # # # # # # #
 # This code is based on the knowledge provided on https://github.com/BayesWatch/cinic-10 (13.June.2025) that the construction of the data set worked as follows:
@@ -35,7 +35,8 @@ def generate_labels(data_path, output_path):
 
     with open(output_path, mode="w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["split", "class", "filename", "source"])
+        # Use underscore in front of class, because class is a keyword in python and this caused problems
+        writer.writerow(["split", "category", "filename", "source"])
 
         for split in splits:
             for cls in classes:
