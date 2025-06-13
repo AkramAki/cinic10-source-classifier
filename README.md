@@ -31,8 +31,22 @@ models/       # Trained model files
 results/      # Evaluation metrics and plots
 ```
 
+### ✅ Before Using This Repository
+
+Before running the code, make sure to **download the CINIC-10 dataset**:
+
+1. Navigate to the `data/` directory.
+2. Follow the instructions provided inside the loading_the_dataset.md to download and extract the dataset.
+3. Once the dataset is in place, you can:
+
+   * Run the notebooks in `notebooks/`
+   * Load trained models from `models/`
+   * View visualizations and metrics in `results/`
+
+Everything should work out of the box after the dataset is set up correctly.
+
 ### 👥 Team
 
-* \[Akram Aki]
-* \[Muhammad Hassan]
-* ML Seminar, \[TU Dortmund, Germany], \[Semester 6]
+* Akram Aki
+* Muhammad Hassan
+* ML Seminar, TU Dortmund, Germany, Semester 6
