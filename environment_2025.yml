@@ -1,0 +1,23 @@
+name: ml
+dependencies:
+  - python=3.12
+  - tensorflow=2.18.0
+  - h5py
+  - numpy
+  - matplotlib
+  - ipython
+  - scikit-learn
+  - pandas
+  - scipy
+  - seaborn
+  - pydot
+  - pip
+  - catppuccin-jupyterlab
+
+  - pip:
+    - wget
+    - graphviz
+    - hyperas
+    - mlxtend
+    - gdown
+

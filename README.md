@@ -31,19 +31,35 @@ models/       # Trained model files
 results/      # Evaluation metrics and plots
 ```
 
-### ✅ Before Using This Repository
+### ✅ Before You Start
 
-Before running the code, make sure to **download the CINIC-10 dataset**:
+Before running the code, make sure to **download the CINIC-10 dataset** and set up the environment.
 
 1. Navigate to the `data/` directory.
-2. Follow the instructions provided inside the loading_the_dataset.md to download and extract the dataset.
-3. Once the dataset is in place, you can:
+
+2. Follow the instructions in `loading_the_dataset.md` to download and extract the dataset.
+
+3. Install the required Python packages using the provided environment file.
+   We recommend using **[Mamba](https://github.com/conda-forge/miniforge)** (a faster alternative to conda):
+
+   ```bash
+   mamba env create -f environment_2025.yml
+   ```
+
+4. Activate the environment before working on the project:
+
+   ```bash
+   mamba activate ml
+   ```
+
+5. Once the environment is active and the dataset is ready, you can:
 
    * Run the notebooks in `notebooks/`
    * Load trained models from `models/`
    * View visualizations and metrics in `results/`
 
-Everything should work out of the box after the dataset is set up correctly.
+Everything should work out of the box if the steps above were followed correctly.
+
 
 ### 👥 Team
 
