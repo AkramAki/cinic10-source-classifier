@@ -33,7 +33,7 @@ results/      # Evaluation metrics and plots
 
 ### ✅ Before You Start
 
-Before running the code, make sure to **download the CINIC-10 dataset** and set up the environment.
+Before running the code, make sure to **download the CINIC-10 dataset**, set up the environment and run the python script to generate Labels for the Dataset.
 
 1. Navigate to the `data/` directory.
 
@@ -52,7 +52,9 @@ Before running the code, make sure to **download the CINIC-10 dataset** and set 
    mamba activate ml
    ```
 
-5. Once the environment is active and the dataset is ready, you can:
+5. Navigate to `generate_domain_labels.py` and follow the instructions provided in the comments in lines 6-8.
+
+6. Once the environment is active and the dataset is ready, you can:
 
    * Run the notebooks in `notebooks/`
    * Load trained models from `models/`
