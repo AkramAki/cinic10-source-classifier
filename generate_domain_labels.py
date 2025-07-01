@@ -2,6 +2,8 @@ import os
 import csv
 import argparse
 
+import pandas as pd
+
 
 # Use this file by running      "python generate_domain_labels.py --data path/to/CINIC-10 --out path/to/output.csv"     in the command line
 # Change "path/to/CINIC-10" and "path/to/output.csv" to the correct paths.
@@ -52,14 +54,34 @@ def generate_labels(data_path, output_path):
 
     print(f"Domain labels written to: {output_path}")
 
+def prepare_data(data_path, output_path):
+    # First generate the labels
+    generate_labels(data_path, output_path)
+    
+    # Load the original CSV with 'split', 'category', 'filename', 'source', 'full_path'
+    df = pd.read_csv("data/cinic10_domain_labels.csv")
+    
+    # Select only the necessary columns for training
+    df_prepared = df[["full_path", "source"]].rename(columns={"source": "label"})
+    
+    # Create output folder
+    os.makedirs("data/prepared", exist_ok=True)
+    
+    # Save per-split CSV files
+    for split in ["train", "valid", "test"]:
+        df_split = df[df["split"] == split][["full_path", "source"]].rename(columns={"source": "label"})
+        df_split.to_csv(f"data/prepared/{split}.csv", index=False)
+    
+    print("Prepared data saved to data/prepared/")
+    
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="Generate CIFAR/ImageNet domain labels for CINIC-10")
+        description="Generate CIFAR/ImageNet domain labels for CINIC-10 and prepare the data for training")
     parser.add_argument("--data", required=True,
                         help="Path to the CINIC-10 root directory (contains train/, test/, valid/)")
     parser.add_argument(
         "--out", default="cinic10_domain_labels.csv", help="Output CSV file path")
 
     args = parser.parse_args()
-    generate_labels(args.data, args.out)
+    prepare_data(args.data, args.out)
