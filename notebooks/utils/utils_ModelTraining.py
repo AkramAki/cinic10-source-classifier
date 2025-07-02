@@ -7,7 +7,8 @@ import os
 
 from tqdm import tqdm
 
-data_path = "../data"
+root_path = ".."
+data_path = os.path.join(root_path, "data")
 CINIC10_path = os.path.join(data_path, "CINIC-10")
 
 def load_data(csv_path):

@@ -1,7 +1,6 @@
 name: ml
 dependencies:
   - python=3.12
-  - tensorflow=2.18.0
   - h5py
   - numpy
   - matplotlib
@@ -15,6 +14,7 @@ dependencies:
   - catppuccin-jupyterlab
 
   - pip:
+    - tensorflow==2.18.0
     - wget
     - graphviz
     - hyperas

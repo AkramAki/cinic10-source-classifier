@@ -63,6 +63,85 @@ Before running the code, make sure to **download the CINIC-10 dataset**, set up 
 Everything should work out of the box if the steps above were followed correctly.
 
 
+---
+
+### ⚙️ GPU Support (Optional)
+"You are welcome to add and correct instructions for GPU Support"
+
+To use GPU acceleration with TensorFlow, a compatible **NVIDIA GPU** and driver must be installed.
+
+#### 🧠 How to Check for GPU Availability
+
+**1. Run:**
+
+```bash
+nvidia-smi
+```
+
+If you see:
+
+```
+zsh: command not found: nvidia-smi
+```
+
+your system does **not** have the NVIDIA driver installed.
+
+**2. Check for NVIDIA hardware:**
+
+```bash
+lspci | grep -i nvidia
+```
+
+If you see output like:
+
+```
+01:00.0 VGA compatible controller: NVIDIA Corporation ...
+```
+
+you **do** have an NVIDIA GPU and just need the driver.
+
+---
+
+#### 🐧 NVIDIA Driver Installation on Fedora 42  (Done by Akram Aki) (Tested until it worked)
+
+You can install the official CUDA drivers from NVIDIA’s RPM repository:
+
+1. Add the NVIDIA repo:
+
+   ```bash
+   sudo dnf config-manager --add-repo https://developer.download.nvidia.com/compute/cuda/repos/fedora41/x86_64/cuda-fedora41.repo
+   ```
+
+2. Clean the package cache:
+
+   ```bash
+   sudo dnf clean all
+   ```
+
+3. Install the CUDA toolkit (includes the driver):
+
+   ```bash
+   sudo dnf -y install cuda-toolkit-12-9
+   ```
+4. Install command nvidia-smi:
+    ```bash
+   nvidia-smi
+   ```
+    Fedora will now ask if packages should be installed to use ```bash nvidia-smi```
+    Type "y" and enter
+
+5. Install nvidia driver:
+    ```bash
+   sudo dnf -y install nvidia-open
+   ```  
+---
+
+📎 Official source:
+[NVIDIA CUDA Downloads for Fedora](https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=Fedora&target_version=41&target_type=rpm_network)
+
+---
+
+
 ### 👥 Team
 
 * Akram Aki
