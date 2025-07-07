@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 from tensorflow.keras.utils import Sequence
+#from tensorflow.keras.utils import PyDataset
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import LabelEncoder
 
 import os
 
 class DomainImageGenerator(Sequence):
-    def __init__(self, csv_path_from_data, batch_size=64, img_size=(32, 32), shuffle=True, **kwargs):
+    def __init__(self, csv_path_from_data, batch_size=64, img_size=(32, 32), shuffle=True, n_jobs=1, use_multiprocessing=False, max_queue_size=10, **kwargs):
         super().__init__(**kwargs)   
         self.root_path = ".."
         self.data_path = os.path.join(self.root_path, "data")
@@ -21,6 +22,12 @@ class DomainImageGenerator(Sequence):
         self.df['label'] = self.encoder.fit_transform(self.df['label'])
         self.indexes = np.arange(len(self.df))
         self.on_epoch_end()
+        # Information on  https://www.tensorflow.org/api_docs/python/tf/keras/utils/PyDataset
+        self.workers = n_jobs 
+        self.use_multiprocessing = use_multiprocessing
+        self.max_queue_size = max_queue_size
+
+        self.allLabels = []
 
 
     def __len__(self):
@@ -39,9 +46,12 @@ class DomainImageGenerator(Sequence):
             img = img_to_array(img) / 255.0  # normalize
             images.append(img)
             labels.append(row["label"])
-
+        self.allLabels = self.allLabels + labels
         return np.array(images), np.array(labels)
 
     def on_epoch_end(self):
         if self.shuffle:
             np.random.shuffle(self.indexes)
+
+    def getAllLabels(self):
+        return self.df['label'].iloc[self.indexes].to_numpy()
