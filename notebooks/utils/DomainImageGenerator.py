@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 from tensorflow.keras.utils import Sequence
-#from tensorflow.keras.utils import PyDataset
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import LabelEncoder
 
@@ -27,8 +26,6 @@ class DomainImageGenerator(Sequence):
         self.use_multiprocessing = use_multiprocessing
         self.max_queue_size = max_queue_size
 
-        self.allLabels = []
-
 
     def __len__(self):
         return int(np.ceil(len(self.df) / self.batch_size))
@@ -46,7 +43,6 @@ class DomainImageGenerator(Sequence):
             img = img_to_array(img) / 255.0  # normalize
             images.append(img)
             labels.append(row["label"])
-        self.allLabels = self.allLabels + labels
         return np.array(images), np.array(labels)
 
     def on_epoch_end(self):
@@ -55,3 +51,4 @@ class DomainImageGenerator(Sequence):
 
     def getAllLabels(self):
         return self.df['label'].iloc[self.indexes].to_numpy()
+
