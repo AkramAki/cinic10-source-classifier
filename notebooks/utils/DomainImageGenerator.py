@@ -47,8 +47,38 @@ class DomainImageGenerator(Sequence):
 
     def on_epoch_end(self):
         if self.shuffle:
-            np.random.shuffle(self.indexes)
+            self.shuffle_indexes()
+
+    def shuffle_indexes(self):
+        np.random.shuffle(self.indexes)
 
     def getAllLabels(self):
-        return self.df['label'].iloc[self.indexes].to_numpy()
+        return self.return_Label_by_Index(self.indexes)
 
+    def return_Label_by_Index(self, indexes):
+        return self.df['label'].iloc[indexes].to_numpy()
+
+    def return_Img_by_Index(self, indexes):
+        index_df = self.df.iloc[indexes]
+        images = []
+
+        for _, row in index_df.iterrows():
+            path = os.path.join(self.CINIC10_path, row["full_path"])
+            img = load_img(path, target_size=self.img_size)
+            img = img_to_array(img) / 255.0  # normalize
+            images.append(img)
+            
+        return np.array(images)
+
+    def getAllCategories(self):
+        return self.return_Category_by_Index(self.indexes)
+
+    def return_Category_by_Index(self, indexes):
+        return self.df['category'].iloc[indexes].to_numpy()
+
+    def return_Indexes(self):
+        return self.indexes
+
+    def return_Dataframe(self):
+        return self.df
+        
