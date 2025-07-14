@@ -61,15 +61,12 @@ def prepare_data(data_path, output_path):
     # Load the original CSV with 'split', 'category', 'filename', 'source', 'full_path'
     df = pd.read_csv("data/cinic10_domain_labels.csv")
     
-    # Select only the necessary columns for training
-    df_prepared = df[["full_path", "source"]].rename(columns={"source": "label"})
-    
     # Create output folder
     os.makedirs("data/prepared", exist_ok=True)
     
     # Save per-split CSV files
     for split in ["train", "valid", "test"]:
-        df_split = df[df["split"] == split][["full_path", "source"]].rename(columns={"source": "label"})
+        df_split = df[df["split"] == split][["full_path", "source", "category"]].rename(columns={"source": "label"})
         df_split.to_csv(f"data/prepared/{split}.csv", index=False)
     
     print("Prepared data saved to data/prepared/")
