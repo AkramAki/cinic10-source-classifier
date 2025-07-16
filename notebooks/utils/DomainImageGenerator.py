@@ -4,6 +4,8 @@ from tensorflow.keras.utils import Sequence
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import LabelEncoder
 
+from tqdm import tqdm
+
 import os
 
 class DomainImageGenerator(Sequence):
@@ -12,6 +14,9 @@ class DomainImageGenerator(Sequence):
         self.root_path = ".."
         self.data_path = os.path.join(self.root_path, "data")
         self.CINIC10_path = os.path.join(self.data_path, "CINIC-10")
+
+        seed = 42
+        self.rng = np.random.default_rng(seed)
 
         self.df = pd.read_csv(os.path.join(self.data_path, csv_path_from_data))
         self.batch_size = batch_size
@@ -49,8 +54,8 @@ class DomainImageGenerator(Sequence):
         if self.shuffle:
             self.shuffle_indexes()
 
-    def shuffle_indexes(self):
-        np.random.shuffle(self.indexes)
+    def shuffle_indexes(self): 
+        self.indexes = self.rng.permutation(self.indexes)
 
     def getAllLabels(self):
         return self.return_Label_by_Index(self.indexes)
@@ -62,13 +67,14 @@ class DomainImageGenerator(Sequence):
         index_df = self.df.iloc[indexes]
         images = []
 
-        for _, row in index_df.iterrows():
+        for _, row in tqdm(index_df.iterrows(), total=len(index_df), desc="Loading images"):
             path = os.path.join(self.CINIC10_path, row["full_path"])
             img = load_img(path, target_size=self.img_size)
             img = img_to_array(img) / 255.0  # normalize
             images.append(img)
-            
+
         return np.array(images)
+
 
     def getAllCategories(self):
         return self.return_Category_by_Index(self.indexes)
