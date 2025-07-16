@@ -116,6 +116,6 @@ I did not get it to work but maybe someone can add proper instructions
 
 ### 👥 Team
 
-* Akram Aki
-* Muhammad Hassan
-* ML Seminar, TU Dortmund, Germany, Semester 6
+* Akram Aki, Bachelor Semester 6
+* Muhammad Hassan, Master 
+* ML Seminar, TU Dortmund, Germany
