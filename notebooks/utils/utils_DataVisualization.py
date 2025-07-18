@@ -72,7 +72,7 @@ def compute_rgb_stats(df, data_dir, n=1000, source=None, category=None, random_s
     - random_state: Optional seed for reproducible sampling
 
     Returns:
-    - mean RGB array (shape: [3,])
+    - (mean RGB array (shape: [3,]), meanVariance RGB array (shape:[3,]))
     """
     subset = df.copy()
 
@@ -86,6 +86,7 @@ def compute_rgb_stats(df, data_dir, n=1000, source=None, category=None, random_s
 
     sample = subset.sample(n=min(n, len(subset)), random_state=random_state)
     means = []
+    picture_variance = []
 
     for row in sample.itertuples():
         path = os.path.join(data_dir, row.full_path)
@@ -93,10 +94,16 @@ def compute_rgb_stats(df, data_dir, n=1000, source=None, category=None, random_s
             img = np.array(Image.open(path).convert("RGB")) / 255.0
             # Calculate mean pixel Value per color channel
             means.append(img.mean(axis=(0, 1)))
+            picture_variance.append(img.var(axis=(0, 1)))
         except Exception as e:
             print(f"Skipping {path} \n Error with Image \n Exception: {e}")
+    # https://www.emathzone.com/tutorials/basic-statistics/combined-variance.html      note: n1 = n2 due to pictures always having the same size of 32*32
+    N = 32*32
+    means = np.array(means)
+    combined_mean = means.mean(axis=0)
+    combined_variance = (N * np.sum(np.array(picture_variance), axis=0) + N * np.sum((means - combined_mean)**2, axis=0)) / (len(picture_variance) * N)
 
-    return np.array(means).mean(axis=0) if means else None
+    return (combined_mean, combined_variance)
 
 
 def compare_rgb_means_per_class(df, data_dir, n=1000):
@@ -105,14 +112,86 @@ def compare_rgb_means_per_class(df, data_dir, n=1000):
     print("-" * 100)
 
     for cat in categories:
-        cifar_rgb = compute_rgb_stats(
+        cifar_rgb_mean, cifar_rgb_meanVariance = compute_rgb_stats(
             df, data_dir, n=n, source="CIFAR-10", category=cat)
-        imagenet_rgb = compute_rgb_stats(
+        imagenet_rgb_mean, imagenet_rgb_meanVariance = compute_rgb_stats(
             df, data_dir, n=n, source="ImageNet", category=cat)
 
-        if cifar_rgb is not None and imagenet_rgb is not None:
-            diff = imagenet_rgb - cifar_rgb
+        if cifar_rgb_mean is not None and imagenet_rgb_mean is not None:
+            diff = imagenet_rgb_mean - cifar_rgb_mean
             print(f"{cat:<12} "
-                  f"{tuple(float(x) for x in np.round(cifar_rgb, 3))!s:<30} "
-                  f"{tuple(float(x) for x in np.round(imagenet_rgb, 3))!s:<30} "
+                  f"{tuple(float(x) for x in np.round(cifar_rgb_mean, 3))!s:<30} "
+                  f"{tuple(float(x) for x in np.round(imagenet_rgb_mean, 3))!s:<30} "
                   f"{tuple(float(x) for x in np.round(diff, 3))!s:<30}")
+            
+
+def compare_rgb_meanVariances_per_class(df, data_dir, n=1000):
+    categories = sorted(df["category"].unique())
+    print(f"{'Class':<12} {'CIFAR-10 (R,G,B)':<30} {'ImageNet (R,G,B)':<30} {'Difference (R,G,B)':<30}")
+    print("-" * 100)
+
+    for cat in categories:
+        cifar_rgb_mean, cifar_rgb_meanVariance = compute_rgb_stats(
+            df, data_dir, n=n, source="CIFAR-10", category=cat)
+        imagenet_rgb_mean, imagenet_rgb_meanVariance = compute_rgb_stats(
+            df, data_dir, n=n, source="ImageNet", category=cat)
+            
+        if cifar_rgb_meanVariance is not None and imagenet_rgb_meanVariance is not None:
+            diff = imagenet_rgb_meanVariance - cifar_rgb_meanVariance
+            print(f"{cat:<12} "
+                  f"{tuple(float(x) for x in np.round(cifar_rgb_meanVariance, 3))!s:<30} "
+                  f"{tuple(float(x) for x in np.round(imagenet_rgb_meanVariance, 3))!s:<30} "
+                  f"{tuple(float(x) for x in np.round(diff, 3))!s:<30}")
+
+def compute_pixelwise_stats(df, data_dir, n=1000, source=None, category=None, random_state=None, image_size=(32, 32)):
+    """
+    Compute per-pixel RGB variance across a sample of images for a given class/source.
+
+    Returns:
+    - (H, W, 3) numpy array of variances
+    """
+    subset = df.copy()
+
+    if source is not None:
+        subset = subset[subset["source"] == source]
+
+    if category is not None:
+        if isinstance(category, str):
+            category = [category]
+        subset = subset[subset["category"].isin(category)]
+
+    sample = subset.sample(n=min(n, len(subset)), random_state=random_state)
+    images = []
+
+    for row in tqdm(sample.itertuples(), desc=f"Computing variance {category} | {source}"):
+        path = os.path.join(data_dir, row.full_path)
+        try:
+            img = np.array(Image.open(path).convert("RGB").resize(image_size)) / 255.0
+            images.append(img)
+        except Exception as e:
+            print(f"Skipping {path}\nException: {e}")
+
+    if not images:
+        return None
+
+    images = np.stack(images, axis=0)  # shape: (N, H, W, C)
+    return (np.mean(images, axis=0), np.var(images, axis=0))  # shape: (2, H, W, C)
+
+
+def show_number_image(number_img, title="Pixelwise Variance", channel="R"):
+    channel_idx = {"R": 0, "G": 1, "B": 2}[channel.upper()]
+    data = number_img[:, :, channel_idx]
+
+    fig, ax = plt.subplots(figsize=(12, 12))
+    im = ax.imshow(data, cmap="viridis")
+
+    for i in range(data.shape[0]):
+        for j in range(data.shape[1]):
+            val = f"{data[i, j]:.2f}"
+            ax.text(j, i, val, ha="center", va="center", color="white", fontsize=6)
+
+    ax.set_title(f"{title} (Channel: {channel})")
+    plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+    plt.tight_layout()
+    plt.show()
+

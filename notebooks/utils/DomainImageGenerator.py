@@ -3,6 +3,7 @@ import pandas as pd
 from tensorflow.keras.utils import Sequence
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import LabelEncoder
+from PIL import Image 
 
 from tqdm import tqdm
 
@@ -31,6 +32,12 @@ class DomainImageGenerator(Sequence):
         self.use_multiprocessing = use_multiprocessing
         self.max_queue_size = max_queue_size
 
+        self.rescale = False
+        self.newsize = (256, 256)
+        self.standardsize = (32, 32)
+
+    def set_Mode_To_Rescale(self, rescale):
+        self.rescale = rescale
 
     def __len__(self):
         return int(np.ceil(len(self.df) / self.batch_size))
@@ -45,10 +52,18 @@ class DomainImageGenerator(Sequence):
         for _, row in batch_df.iterrows():
             path = os.path.join(self.CINIC10_path, row["full_path"])
             img = load_img(path, target_size=self.img_size)
+
+            if self.rescale:
+                img = self.rescale_Image(img)
+            
             img = img_to_array(img) / 255.0  # normalize
             images.append(img)
             labels.append(row["label"])
         return np.array(images), np.array(labels)
+
+    def rescale_Image(self, img):
+        img = img.resize(self.newsize, resample=Image.Resampling.LANCZOS)
+        return img.resize(self.standardsize, resample=Image.Resampling.BOX)
 
     def on_epoch_end(self):
         if self.shuffle:
@@ -63,13 +78,17 @@ class DomainImageGenerator(Sequence):
     def return_Label_by_Index(self, indexes):
         return self.df['label'].iloc[indexes].to_numpy()
 
-    def return_Img_by_Index(self, indexes):
+    def return_Img_by_Index(self, indexes, rescaled=False):
         index_df = self.df.iloc[indexes]
         images = []
 
         for _, row in tqdm(index_df.iterrows(), total=len(index_df), desc="Loading images"):
             path = os.path.join(self.CINIC10_path, row["full_path"])
             img = load_img(path, target_size=self.img_size)
+
+            if rescaled:
+                img = self.rescale_Image(img)
+            
             img = img_to_array(img) / 255.0  # normalize
             images.append(img)
 
