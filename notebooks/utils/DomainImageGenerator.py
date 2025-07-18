@@ -33,11 +33,20 @@ class DomainImageGenerator(Sequence):
         self.max_queue_size = max_queue_size
 
         self.rescale = False
+        self.sourceToRescale = None
         self.newsize = (256, 256)
         self.standardsize = (32, 32)
 
-    def set_Mode_To_Rescale(self, rescale):
+    def set_Mode_To_Rescale(self, rescale, source=None):
         self.rescale = rescale
+        if source == "ImageNet":
+            self.sourceToRescale = 1
+        elif source == "CIFAR-10":
+            self.sourceToRescale = 0
+        elif source == None:
+            self.sourceToRescale = None
+        else:
+            print("Source should be ImageNet or CIFAR-10 or None")
 
     def __len__(self):
         return int(np.ceil(len(self.df) / self.batch_size))
@@ -54,7 +63,10 @@ class DomainImageGenerator(Sequence):
             img = load_img(path, target_size=self.img_size)
 
             if self.rescale:
-                img = self.rescale_Image(img)
+                if self.sourceToRescale == None:
+                    img = self.rescale_Image(img)
+                elif row["label"] == self.sourceToRescale:
+                    img = self.rescale_Image(img)
             
             img = img_to_array(img) / 255.0  # normalize
             images.append(img)
@@ -62,8 +74,15 @@ class DomainImageGenerator(Sequence):
         return np.array(images), np.array(labels)
 
     def rescale_Image(self, img):
-        img = img.resize(self.newsize, resample=Image.Resampling.LANCZOS)
+        img = img.resize(self.newsize, resample=Image.Resampling.HAMMING)
         return img.resize(self.standardsize, resample=Image.Resampling.BOX)
+        # https://pillow.readthedocs.io/en/stable/reference/Image.html#PIL.Image.Resampling.BOX
+        # BICUBIC = 3
+        # BILINEAR = 2
+        # BOX = 4
+        # HAMMING = 5
+        # LANCZOS = 1
+        # NEAREST = 0
 
     def on_epoch_end(self):
         if self.shuffle:
