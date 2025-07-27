@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
-from tensorflow.keras.utils import Sequence
-from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from keras.utils import Sequence
+from keras.preprocessing.image import load_img, img_to_array
 from sklearn.preprocessing import LabelEncoder
 from PIL import Image 
 
