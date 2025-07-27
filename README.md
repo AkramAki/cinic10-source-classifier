@@ -30,6 +30,7 @@ notebooks/    # Jupyter notebooks for exploration and training
 models/       # Trained model files
 results/      # Evaluation metrics and plots
 ```
+Note that we did not use results but used a build directory inside the notebooks directory to store some images.
 
 ### ✅ Before You Start
 
