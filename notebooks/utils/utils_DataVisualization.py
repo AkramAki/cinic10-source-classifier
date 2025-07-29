@@ -3,6 +3,7 @@ from tqdm import tqdm
 from PIL import Image
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -105,6 +106,56 @@ def compute_rgb_stats(df, data_dir, n=1000, source=None, category=None, random_s
 
     return (combined_mean, combined_variance)
 
+
+def compare_rgb_stats_per_class(df, data_dir, n=1000):
+    """
+    Returns a DataFrame comparing CIFAR-10 and ImageNet RGB means and variances per class.
+
+    Parameters:
+    - df: DataFrame with CINIC-10 metadata.
+    - data_dir: Path to CINIC-10 image directory.
+    - n: Number of samples to use per class/source.
+
+    Returns:
+    - pd.DataFrame with columns:
+      ['class', 'cifar_r', 'cifar_g', 'cifar_b',
+       'imagenet_r', 'imagenet_g', 'imagenet_b',
+       'diff_r', 'diff_g', 'diff_b',
+       'cifar_var_r', 'cifar_var_g', 'cifar_var_b',
+       'imagenet_var_r', 'imagenet_var_g', 'imagenet_var_b']
+    """
+    categories = sorted(df["category"].unique())
+    rows = []
+
+    for cat in tqdm(categories, desc="Computing RGB stats per class"):
+        cifar_rgb_mean, cifar_rgb_var = compute_rgb_stats(
+            df, data_dir, n=n, source="CIFAR-10", category=cat)
+        imagenet_rgb_mean, imagenet_rgb_var = compute_rgb_stats(
+            df, data_dir, n=n, source="ImageNet", category=cat)
+
+        if cifar_rgb_mean is not None and imagenet_rgb_mean is not None:
+            diff = imagenet_rgb_mean - cifar_rgb_mean
+            row = {
+                "class": cat,
+                "cifar_r": cifar_rgb_mean[0],
+                "cifar_g": cifar_rgb_mean[1],
+                "cifar_b": cifar_rgb_mean[2],
+                "imagenet_r": imagenet_rgb_mean[0],
+                "imagenet_g": imagenet_rgb_mean[1],
+                "imagenet_b": imagenet_rgb_mean[2],
+                "diff_r": diff[0],
+                "diff_g": diff[1],
+                "diff_b": diff[2],
+                "cifar_var_r": cifar_rgb_var[0],
+                "cifar_var_g": cifar_rgb_var[1],
+                "cifar_var_b": cifar_rgb_var[2],
+                "imagenet_var_r": imagenet_rgb_var[0],
+                "imagenet_var_g": imagenet_rgb_var[1],
+                "imagenet_var_b": imagenet_rgb_var[2],
+            }
+            rows.append(row)
+
+    return pd.DataFrame(rows)
 
 def compare_rgb_means_per_class(df, data_dir, n=1000):
     categories = sorted(df["category"].unique())
