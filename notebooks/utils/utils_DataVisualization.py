@@ -26,38 +26,52 @@ def check_images(df, data_dir):
             print(filePath)
     return broken
 
-
-def show_images(df, data_dir, label, n=5, random_state=None, class_filter=None):
+def show_images(df, data_dir, label, n=5, random_state=None, class_filter=None,
+                shouldBeSaved=False, save_path="images_output.png"):
     """
-    Show random images from CINIC-10 filtered by domain source and optionally by class.
+    Show or save random images from CINIC-10 filtered by domain source and optionally by class.
 
     Parameters:
-    - df: DataFrame with columns ['split', 'category', 'filename', 'source']
+    - df: DataFrame with columns ['split', 'category', 'filename', 'source', 'full_path']
     - data_dir: Path to CINIC-10 root directory
     - label: 'CIFAR-10' or 'ImageNet'
     - n: Number of images to show
     - random_state: Optional int seed for reproducible sampling
     - class_filter: Optional string or list of class names (e.g., 'dog' or ['dog', 'cat'])
+    - shouldBeSaved: If True, saves the image grid to `save_path` instead of showing it
+    - save_path: File path to save the figure if `shouldBeSaved=True`
     """
     subset = df[df["source"] == label]
 
-    # Apply class filter if provided
     if class_filter is not None:
         if isinstance(class_filter, str):
             class_filter = [class_filter]
         subset = subset[subset["category"].isin(class_filter)]
 
-    # Sample and visualize
-    subset = subset.sample(n=n, random_state=random_state)
+    subset = subset.sample(n=min(n, len(subset)), random_state=random_state)
+
     fig, axs = plt.subplots(1, n, figsize=(3 * n, 3))
+    if n == 1:
+        axs = [axs]  # Make iterable if only one subplot
+
     for ax, row in zip(axs, subset.itertuples()):
         img_path = os.path.join(data_dir, row.full_path)
-        ax.imshow(Image.open(img_path))
+        img = Image.open(img_path)
+        ax.imshow(img)
         ax.set_title(row.category)
         ax.axis("off")
-    plt.suptitle(
-        f"{label} — {class_filter if class_filter else 'All Classes'}")
-    plt.tight_layout()
+
+    title_str = f"{label} — {', '.join(class_filter) if class_filter else 'All Classes'}"
+    fig.suptitle(title_str)
+    fig.tight_layout(rect=[0, 0, 1, 0.93])  # Leave room for title
+
+    if shouldBeSaved:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        fig.savefig(save_path, bbox_inches='tight')
+        print(f"Saved image grid to {save_path}")
+    plt.show()
+
+    plt.close(fig)
 
 
 def compute_rgb_stats(df, data_dir, n=1000, source=None, category=None, random_state=None):
